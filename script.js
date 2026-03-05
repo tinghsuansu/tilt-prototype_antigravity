@@ -8,7 +8,7 @@ const toggleBtn = document.getElementById('toggle-state');
 
 function updateState(newState) {
     if (currentState === newState) return;
-    
+
     currentState = newState;
     body.className = `state-${newState}`;
     debugState.textContent = newState.charAt(0).toUpperCase() + newState.slice(1);
@@ -22,10 +22,24 @@ toggleBtn.addEventListener('click', () => {
 
 // Device Orientation Handling
 window.addEventListener('deviceorientation', (event) => {
-    const beta = event.beta; // -180 to 180
-    if (beta === null) return;
+    const orientation = window.orientation || 0;
+    let beta = event.beta;
+    let gamma = event.gamma;
 
-    const angle = Math.round(beta);
+    if (beta === null || gamma === null) return;
+
+    let angle = 0;
+
+    // Normalize tilt angle based on screen orientation
+    if (Math.abs(orientation) === 90) {
+        // Landscape: Tilt is primarily reported in gamma
+        // When rotated 90 deg (landscape-primary), gamma is tilt towards/away from user
+        angle = Math.abs(Math.round(gamma));
+    } else {
+        // Portrait (0 or 180): Tilt is reported in beta
+        angle = Math.abs(Math.round(beta));
+    }
+
     debugAngle.textContent = angle;
 
     // Thresholds: Flat (0-30°), Upright (60-90°)
