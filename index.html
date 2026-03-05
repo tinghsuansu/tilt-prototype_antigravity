@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tilt Prototype</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="state-flat">
+    <div class="app-container">
+        <header class="top-bar">
+            <span>Top Bar</span>
+        </header>
+
+        <main class="widget-container">
+            <div class="widget" id="widget-1"><span>Widget 1</span></div>
+            <div class="widget" id="widget-2"><span>Widget 2</span></div>
+            <div class="widget" id="widget-3"><span>Widget 3</span></div>
+            <div class="widget" id="widget-4"><span>Widget 4</span></div>
+        </main>
+
+        <nav class="nav-bar">
+            <span>Nav Bar</span>
+        </nav>
+    </div>
+
+    <!-- Debug Panel -->
+    <div id="debug-panel">
+        <div class="debug-info">
+            <p>Angle: <span id="debug-angle">0</span>°</p>
+            <p>State: <span id="debug-state">Flat</span></p>
+        </div>
+        <button id="toggle-state">Toggle State Manually</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

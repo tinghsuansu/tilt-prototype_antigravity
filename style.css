@@ -1,0 +1,212 @@
+:root {
+    --bg-color: #000000;
+    --widget-color: #D3D3D3;
+    --text-color: #444444;
+    --phase-duration: 0.75s;
+    --gap: 6px;
+    /* spacing between all UI components */
+    --bar-height: 50px;
+    --bar-offset: var(--gap);
+    /* widget-width accounts for 4 widgets + 5 gap slots across 100vw.
+       We keep width calc simple: each widget is exactly 25vw, gaps handled
+       by container padding and flex gap (gap shifts overall centering math). */
+    --widget-width: calc(25vw - var(--gap) * 1.25);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body,
+html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--bg-color);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.app-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ============================================================
+   BARS
+   ============================================================ */
+.top-bar,
+.nav-bar {
+    position: absolute;
+    /* Inset by gap on left and right */
+    left: var(--gap);
+    right: var(--gap);
+    width: auto;
+    height: var(--bar-height);
+    background-color: var(--widget-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-color);
+    font-weight: bold;
+    border: 1px solid #999;
+    border-radius: 4px;
+    z-index: 10;
+    transition: transform var(--phase-duration) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.top-bar {
+    top: var(--gap);
+}
+
+.nav-bar {
+    bottom: var(--gap);
+}
+
+/* ============================================================
+   WIDGET CONTAINER
+   Always reserves top+bottom space for bars (even when hidden),
+   so widget height stays the same in both states.
+   Padding adds left/right margins around the widget group.
+   gap adds space between widgets.
+   ============================================================ */
+.widget-container {
+    position: absolute;
+    top: calc(var(--gap) + var(--bar-height) + var(--gap));
+    /* gap + bar + gap */
+    left: 0;
+    width: 100%;
+    height: calc(100vh - (var(--gap) + var(--bar-height) + var(--gap)) * 2);
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    overflow: visible;
+    gap: var(--gap);
+    padding: 0 var(--gap);
+    /* left/right edge margin */
+    transition: transform var(--phase-duration) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================
+   WIDGETS: Fixed dimensions in ALL states.
+   Width = equal share of 100vw after gaps and padding are removed.
+   Flex:1 distributes remaining space evenly.
+   ============================================================ */
+.widget {
+    background-color: var(--widget-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-color);
+    border: 1px solid #999;
+    border-radius: 4px;
+    font-weight: 500;
+    flex-shrink: 0;
+    /* Fixed width = 1/4 of (100vw - 2 edge gaps - 3 inter-widget gaps) */
+    width: calc((100vw - var(--gap) * 2 - var(--gap) * 3) / 4);
+    height: 100%;
+}
+
+/* Widget 4 animates separately (opacity + translateX) */
+#widget-4 {
+    transition:
+        opacity var(--phase-duration) cubic-bezier(0.4, 0, 0.2, 1),
+        transform var(--phase-duration) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================
+   FLAT STATE (default)
+
+   Entering flat FROM UPRIGHT — reverse order:
+     Phase 1 (0s):     Widget 4 slides out + container re-centers
+     Phase 2 (0.75s):  Bars slide out
+
+   The container translateX centers widgets 1-3.
+   Total widget row width = 3 * widget-width + 2 * gap + 2 * padding.
+   We use: translateX = (container - visible content) / 2
+   Since container = 100vw and visible = 3/4 of widget row, shift = 1 widget-width / 2 + gaps/2.
+   Simpler: shift = (widget-width + gap) / 2 ... but we'll use the exact calc:
+   one widget slot = widget-width + gap = (100vw - 5*gap) / 4 + gap = (100vw - gap) / 4
+   half that = (100vw - gap) / 8
+   ============================================================ */
+
+/* Phase 1 (immediate): Widget 4 hides, container re-centers */
+.state-flat .widget-container {
+    /* shift = half of (one widget width + one gap) */
+    transform: translateX(calc((100vw - var(--gap)) / 8));
+    transition-delay: 0s;
+}
+
+.state-flat #widget-4 {
+    opacity: 0;
+    transform: translateX(150%);
+    pointer-events: none;
+    transition-delay: 0s;
+}
+
+/* Phase 2 (delayed): Bars slide out */
+.state-flat .top-bar {
+    transform: translateY(calc(-1 * (var(--gap) + var(--bar-height) + var(--gap))));
+    transition-delay: var(--phase-duration);
+}
+
+.state-flat .nav-bar {
+    transform: translateY(calc(var(--gap) + var(--bar-height) + var(--gap)));
+    transition-delay: var(--phase-duration);
+}
+
+/* ============================================================
+   UPRIGHT STATE
+
+   Entering upright FROM FLAT:
+     Phase 1 (0s):     Bars slide in
+     Phase 2 (0.75s):  Widget 4 slides in + container snaps back to origin
+   ============================================================ */
+
+/* Phase 1 (immediate): Bars slide in */
+.state-upright .top-bar,
+.state-upright .nav-bar {
+    transform: translateY(0);
+    transition-delay: 0s;
+}
+
+/* Phase 2 (delayed): Container at origin — all 4 widgets fill row */
+.state-upright .widget-container {
+    transform: translateX(0);
+    transition-delay: var(--phase-duration);
+}
+
+/* Phase 2 (delayed): Widget 4 slides in from the right */
+.state-upright #widget-4 {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+    transition-delay: var(--phase-duration);
+}
+
+/* ============================================================
+   DEBUG PANEL
+   ============================================================ */
+#debug-panel {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 1000;
+}
+
+#debug-panel button {
+    display: block;
+    margin-top: 8px;
+    padding: 5px 10px;
+    cursor: pointer;
+    width: 100%;
+}
